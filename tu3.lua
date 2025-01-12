@@ -1,92 +1,92 @@
--- Получаем все игроки в игре
+-- Getting all the players in the game
 local players = game:GetService("Players")
 local userInputService = game:GetService("UserInputService")
 local starterGui = game:GetService("StarterGui")
 local player = game.Players.LocalPlayer
 
--- Флаг для отслеживания состояния (включено/выключено)
+-- Flag to track the state (enabled/disabled)
 local isEnabled = false
-local isDisabled = false  -- Новый флаг для отслеживания, выключен ли скрипт через Home
-local isMessageShown = false  -- Флаг для отслеживания, было ли уже выведено сообщение о выключении
+local isDisabled = false  -- Flag to track if the script is disabled via Home
+local isMessageShown = false  -- Flag to track if the disable message has been shown
 
--- Таблица для хранения объектов подсветки и никнеймов
+-- Tables to store highlight and name tags
 local highlights = {}
 local nameTags = {}
 
--- Ссылка на созданный ScreenGui с текстом
+-- Reference to the created ScreenGui with text
 local screenGui = nil
 
--- Функция для подсветки игрока с обводкой
+-- Function to highlight a player with outline
 local function highlightPlayer(player)
     if player.Character then
-        -- Делаем подсветку только если у персонажа нет подсветки
+        -- Make the highlight only if the character doesn't have it already
         if not player.Character:FindFirstChild("Highlight") then
-            -- Создаем объект Highlight для подсветки
+            -- Create a Highlight object for the player
             local highlight = Instance.new("Highlight")
             highlight.Name = "Highlight"
             highlight.Parent = player.Character
             highlight.Adornee = player.Character
 
-            -- Красная заливка
-            highlight.FillColor = Color3.fromRGB(255, 0, 0)  -- Красный цвет
-            highlight.FillTransparency = 0.5  -- Прозрачность заливки
+            -- Red fill color
+            highlight.FillColor = Color3.fromRGB(255, 0, 0)  -- Red color
+            highlight.FillTransparency = 0.5  -- Fill transparency
 
-            -- Зеленая обводка
-            highlight.OutlineColor = Color3.fromRGB(0, 255, 0)  -- Зеленая обводка
-            highlight.OutlineTransparency = 0  -- Обводка непрозрачная
+            -- Green outline
+            highlight.OutlineColor = Color3.fromRGB(0, 255, 0)  -- Green outline
+            highlight.OutlineTransparency = 0  -- Fully opaque outline
 
-            -- Добавляем подсветку в таблицу для контроля
+            -- Add the highlight to the table for tracking
             highlights[player] = highlight
         end
     end
 end
 
--- Функция для отображения никнейма игрока
+-- Function to display player's name tag
 local function displayPlayerName(player)
     if player.Character then
         local character = player.Character
         local head = character:FindFirstChild("Head")
 
-        -- Если у персонажа есть голова, создаем BillboardGui для отображения никнейма
+        -- If the character has a head, create a BillboardGui for the name tag
         if head then
             if not character:FindFirstChild("NameTag") then
                 local nameTag = Instance.new("BillboardGui")
                 nameTag.Name = "NameTag"
                 nameTag.Parent = head
                 nameTag.Adornee = head
-                nameTag.Size = UDim2.new(0, 200, 0, 50)  -- Размер текста
-                nameTag.StudsOffset = Vector3.new(0, 3, 0)  -- Расстояние над головой
-                nameTag.AlwaysOnTop = true  -- Никнейм всегда сверху
+                nameTag.Size = UDim2.new(0, 200, 0, 50)  -- Size of the name tag
+                nameTag.StudsOffset = Vector3.new(0, 3, 0)  -- Offset above the head
+                nameTag.AlwaysOnTop = true  -- Keep the name tag always on top
 
-                -- Устанавливаем MaxDistance на большое значение, чтобы никнейм был виден на огромной дистанции
-                nameTag.MaxDistance = 1000  -- Можно установить на 1000 или больше для больших дистанций
+                -- Set MaxDistance to a large value so the name is visible from a long distance
+                nameTag.MaxDistance = 1000000  -- You can set this to 1000 or higher for large distances
 
-                -- Создаем TextLabel для отображения никнейма
+                -- Create a TextLabel to display the player's name
                 local textLabel = Instance.new("TextLabel")
                 textLabel.Parent = nameTag
-                textLabel.Size = UDim2.new(1, 0, 1, 0)  -- Размер текстового лейбла
-                textLabel.Text = player.Name  -- Устанавливаем никнейм игрока
-                textLabel.TextColor3 = Color3.fromRGB(0, 255, 0)  -- Зеленый цвет текста
-                textLabel.TextStrokeTransparency = 0.5  -- Строка вокруг текста для лучшей видимости
-                textLabel.TextSize = 24  -- Размер текста
-                textLabel.BackgroundTransparency = 1  -- Отключаем фон
-                textLabel.TextTransparency = 0.5  -- Прозрачность текста (50%)
+                textLabel.Size = UDim2.new(1, 0, 1, 0)  -- Size of the text label
+                textLabel.Text = player.Name  -- Set the player's name
+                textLabel.TextColor3 = Color3.fromRGB(0, 255, 0)  -- Green text color
+                textLabel.TextStrokeTransparency = 0.5  -- Stroke around the text for better visibility
+                textLabel.TextSize = 24  -- Text size
+                textLabel.BackgroundTransparency = 1  -- Remove background
+                textLabel.TextTransparency = 0  -- 50% transparency for the text
 
-                -- Добавляем никнейм в таблицу для контроля
+                -- Add the name tag to the table for tracking
                 nameTags[player] = nameTag
             end
         end
     end
 end
 
--- Функция для обработки подсветки и никнейма при смерти игрока
+-- Function to handle highlighting and name tag when a player dies or respawns
 local function onCharacterAdded(player)
     if isEnabled then
-        -- Если включено, создаем подсветку и никнейм
+        -- If enabled, create highlight and name tag
         highlightPlayer(player)
         displayPlayerName(player)
     else
-        -- Если выключено, удаляем подсветку и никнейм, если они есть
+        -- If disabled, remove the highlight and name tag
         if highlights[player] then
             highlights[player]:Destroy()
             highlights[player] = nil
@@ -98,11 +98,11 @@ local function onCharacterAdded(player)
     end
 end
 
--- Функция для выключения всех эффектов и вывода сообщения
+-- Function to disable all effects and notify
 local function disableAllEffectsAndNotify()
-    isEnabled = false  -- Выключаем все эффекты
+    isEnabled = false  -- Disable all effects
 
-    -- Удаляем все подсветки и никнеймы
+    -- Remove all highlights and name tags
     for _, player in pairs(players:GetPlayers()) do
         if player.Character then
             if highlights[player] then
@@ -116,84 +116,84 @@ local function disableAllEffectsAndNotify()
         end
     end
 
-    -- Выводим сообщение в чат, если оно еще не было выведено
+    -- Show a notification if it hasn't been shown yet
     if not isMessageShown then
         starterGui:SetCore("SendNotification", {
             Title = "ESP Hack",
-            Text = "ESP Hack выключен",
-            Duration = 3  -- Продолжительность уведомления
+            Text = "ESP Hack Disabled",
+            Duration = 3  -- Notification duration
         })
-        isMessageShown = true  -- Устанавливаем флаг, что сообщение было выведено
+        isMessageShown = true  -- Set the flag that the message has been shown
     end
 
-    -- Переключаем флаг, что скрипт отключен
+    -- Set the disabled flag
     isDisabled = true
 
-    -- Скрываем текстовый элемент
+    -- Hide the text element
     if screenGui then
-        screenGui.Enabled = false  -- Скрыть текст
+        screenGui.Enabled = false  -- Hide the text
     end
 end
 
--- Подсвечиваем всех игроков в игре
+-- Highlight all players in the game
 for _, player in pairs(players:GetPlayers()) do
-    -- Подключаем событие создания скелетона при появлении персонажа
+    -- Connect the character added event to handle the highlight and name tag
     player.CharacterAdded:Connect(function(character)
         onCharacterAdded(player)
     end)
 
-    -- Подсвечиваем игроков, если их персонажи уже существуют
+    -- Highlight the players if their characters already exist
     if player.Character then
         onCharacterAdded(player)
     end
 end
 
--- Автоматически подсвечиваем новых игроков
+-- Automatically highlight new players
 players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function(character)
         onCharacterAdded(player)
     end)
 end)
 
--- Выводим сообщение о том, что скрипт был успешно загружен
+-- Show a notification about successful script loading
 starterGui:SetCore("SendNotification", {
     Title = "ESP Hack",
-    Text = "ESP Hack успешно загружен",
-    Duration = 3  -- Продолжительность уведомления
+    Text = "ESP Hack Loaded Successfully | Insert - Esp On/Off | Home - Close",
+    Duration = 3  -- Notification duration
 })
 
--- Создаем надпись "@scriptandgames" с прозрачностью 50% и размером увеличенным в 2 раза
+-- Create the text "@scriptandgames" with 50% transparency and size increased by 2x
 screenGui = Instance.new("ScreenGui")
-screenGui.Parent = player.PlayerGui  -- Помещаем ScreenGui в PlayerGui
+screenGui.Parent = player.PlayerGui  -- Place the ScreenGui in PlayerGui
 
 local textLabel = Instance.new("TextLabel")
 textLabel.Parent = screenGui
-textLabel.Size = UDim2.new(0, 600, 0, 100)  -- Увеличиваем размер в два раза
-textLabel.Position = UDim2.new(0.5, -300, 0.75, -50)  -- Центрируем между серединой и низом экрана
-textLabel.Text = "@scriptandgames"  -- Текст надписи
-textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Белый цвет текста
-textLabel.TextStrokeTransparency = 0.5  -- Строка вокруг текста для лучшей видимости
-textLabel.TextSize = 48  -- Увеличиваем размер текста в 2 раза (изначально был 24)
-textLabel.BackgroundTransparency = 1  -- Отключаем фон
-textLabel.TextTransparency = 0  -- Прозрачность текста (50%)
+textLabel.Size = UDim2.new(0, 600, 0, 100)  -- Increase the size by 2x
+textLabel.Position = UDim2.new(0.5, -300, 0.75, -50)  -- Center between the middle and bottom of the screen
+textLabel.Text = "@scriptandgames"  -- Text for the label
+textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)  -- White text color
+textLabel.TextStrokeTransparency = 0.5  -- Stroke around the text for better visibility
+textLabel.TextSize = 48  -- Increase the text size by 2x (original was 24)
+textLabel.BackgroundTransparency = 1  -- Remove background
+textLabel.TextTransparency = 0  -- 50% transparency for the text
 
--- Обработчик нажатия клавиши Insert для переключения состояния
+-- Function to toggle the visibility of highlights and name tags
 local function toggleVisibility()
     if isDisabled then
-        -- Если скрипт отключен через Home, игнорируем попытки включить его снова
+        -- If the script is disabled via Home, ignore toggle attempts
         return
     end
 
-    isEnabled = not isEnabled  -- Переключаем состояние
+    isEnabled = not isEnabled  -- Toggle the state
 
-    -- Включаем или выключаем подсветку и никнеймы для всех игроков
+    -- Show or hide the highlights and name tags for all players
     for _, player in pairs(players:GetPlayers()) do
         if player.Character then
             if isEnabled then
-                -- Если состояние включено, восстанавливаем подсветку и никнейм
+                -- If enabled, restore the highlight and name tag
                 onCharacterAdded(player)
             else
-                -- Если состояние выключено, удаляем подсветку и никнейм
+                -- If disabled, remove the highlight and name tag
                 if highlights[player] then
                     highlights[player]:Destroy()
                     highlights[player] = nil
@@ -205,18 +205,33 @@ local function toggleVisibility()
             end
         end
     end
+
+    -- Send notification about the state change
+    if isEnabled then
+        starterGui:SetCore("SendNotification", {
+            Title = "ESP Hack",
+            Text = "ESP Hack Enabled",
+            Duration = 3  -- Notification duration
+        })
+    else
+        starterGui:SetCore("SendNotification", {
+            Title = "ESP Hack",
+            Text = "ESP Hack Disabled",
+            Duration = 3  -- Notification duration
+        })
+    end
 end
 
--- Обработчик нажатия клавиш
+-- Keyboard input event handler
 userInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    if gameProcessedEvent then return end  -- Игнорируем, если событие уже обработано
+    if gameProcessedEvent then return end  -- Ignore if the event is already processed
 
     if input.UserInputType == Enum.UserInputType.Keyboard then
         if input.KeyCode == Enum.KeyCode.Insert then
-            toggleVisibility()  -- Переключаем состояние подсветки и никнеймов
+            toggleVisibility()  -- Toggle the visibility of highlights and name tags
         elseif input.KeyCode == Enum.KeyCode.Home then
             if not isDisabled then
-                disableAllEffectsAndNotify()  -- Отключаем все эффекты и показываем уведомление
+                disableAllEffectsAndNotify()  -- Disable all effects and show notification
             end
         end
     end
