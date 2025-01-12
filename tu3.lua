@@ -158,7 +158,7 @@ end)
 -- Show a notification about successful script loading
 starterGui:SetCore("SendNotification", {
     Title = "ESP Hack",
-    Text = "ESP Hack Loaded Successfully | Insert - Esp On/Off | Home - Close",
+    Text = "ESP Hack Loaded Successfully",
     Duration = 3  -- Notification duration
 })
 
